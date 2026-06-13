@@ -15,7 +15,7 @@ All components run locally. Once set up, no internet connection is required.
 
 - Local WebLLM server with aiohttp (port 8080)
 - HTML/CSS/JS chat interface with real-time conversation
-- Text-to-Speech option for voice responses
+- Text-to-Speech option for voice responses (pyttsx3 required)
 - Temperature and token length configuration
 - Conversation history management
 - Python API client for integration with other systems
@@ -25,7 +25,6 @@ All components run locally. Once set up, no internet connection is required.
 - **Python 3.10+** installed
 - WebLLM runtime files (optional - for enhanced AI capabilities)
 - Web browser with speech synthesis support for voice responses
-- Text-to-speech: Install `pyttsx3` for desktop voice output (`pip install pyttsx3`)
 
 ## Installation
 
@@ -34,7 +33,7 @@ All components run locally. Once set up, no internet connection is required.
 git clone <your-repo-url>
 cd JSAIBOT
 
-# Install dependencies
+# Install dependencies (pyttsx3 required for voice output)
 pip install -r requirements.txt
 
 # Models will be automatically downloaded to ./models/ when needed
@@ -43,12 +42,7 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-1. **Install TTS support (optional):**
-   ```bash
-   pip install pyttsx3
-   ```
-   
-2. **Start the server:**
+1. **Start the server:**
    ```bash
    python start_server.py
    ```

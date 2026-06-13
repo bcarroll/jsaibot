@@ -2,8 +2,5 @@
 # Core HTTP/WebSocket client
 aiohttp>=3.9.0
 
-# Optional: For enhanced WebSocket support
-websockets>=12.0
-
-# Text-to-Speech (optional - for voice responses)
+# Text-to-Speech (required for consistent voice output across all devices)
 pyttsx3>=2.90
