@@ -34,6 +34,9 @@ cd JSAIBOT
 
 # Install dependencies
 pip install -r requirements.txt
+
+# Models will be automatically downloaded to ./models/ when needed
+# The default model is Llama-3-8B-Instruct with auto-download enabled
 ```
 
 ## Quick Start
@@ -48,7 +51,12 @@ pip install -r requirements.txt
    http://localhost:8080
    ```
 
-3. **Configure WebLLM runtime** (optional):
+3. **Model auto-download:**
+   - The default model (Llama-3-8B-Instruct) will be automatically downloaded when needed
+   - Models are stored in the `./models/` directory
+   - Set `AUTO_DOWNLOAD=false` in `.env` to disable this behavior
+
+4. **Configure WebLLM runtime** (optional):
    - For full AI capabilities, ensure WebLLM is running on `http://localhost:3000`
    - The chat interface will show connection status
 
@@ -79,9 +87,26 @@ python src/server.py --host 0.0.0.0 --port 8080 --webllm-url http://localhost:30
 
 **Environment variables (create `.env`):**
 ```
+# WebLLM Server Settings
 WEBLLM_HOST=localhost
 WEBLLM_PORT=3000
+
+# Model Settings
+MODEL_NAME=Llama-3-8B-Instruct
+DOWNLOAD_DIR=./models
+AUTO_DOWNLOAD=true
+MAX_NEW_TOKENS=256
+TEMPERATURE=0.7
+
+# History Size (number of conversation turns)
+HISTORY_SIZE=10
 ```
+
+### Default Model Configuration
+
+The system defaults to **Llama-3-8B-Instruct** with auto-download enabled:
+- Download location: `./models/Llama-3-8B-Instruct/`
+- Configured with q4f16_1 quantization for efficient local inference
 
 ## API Endpoints
 

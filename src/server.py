@@ -7,7 +7,7 @@ This server provides:
 3. Supports local-only operation after initial setup
 
 Usage:
-    python -m src.server --model <model-path> --host 0.0.0.0 --port 8080
+    python src/server.py --host 0.0.0.0 --port 8080
 """
 
 import argparse
@@ -25,6 +25,14 @@ except ImportError:
     print("Please install aiohttp: pip install aiohttp")
     sys.exit(1)
 
+# Import local modules (use relative imports for embedded mode)
+try:
+    from .config import WebLLMConfig, default_config
+    from .model_manager import ModelManager
+except ImportError:
+    from config import WebLLMConfig, default_config
+    from model_manager import ModelManager
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -37,14 +45,21 @@ class WebLLMProxy:
     """
     Proxy class that translates API requests to WebLLM's WebSocket/HTTP interface.
     
-    This handles the communication with the actual WebLLM runtime which runs
-    in a browser environment.
+    This handles communication with the actual WebLLM runtime and manages
+    model installation using ModelManager.
     """
     
-    def __init__(self, webllm_url: str = "http://localhost:3000"):
+    def __init__(self, webllm_url: str = "http://localhost:3000", config: WebLLMConfig = None):
         self.webllm_url = webllm_url
         self.conversation_history: list = []
         
+        # Initialize model manager with auto-download enabled
+        self.config = config or default_config
+        self.model_manager = ModelManager(
+            download_dir=self.config.download_dir,
+            auto_download=True
+        )
+    
     async def generate(
         self,
         message: str,
@@ -62,13 +77,24 @@ class WebLLMProxy:
         Returns:
             Dictionary with 'response' key containing the generated text
         """
-        # In a real implementation, this would communicate with WebLLM
-        # For now, we provide a mock response and instructions
-        return {
-            "error": "WebLLM runtime not running",
-            "message": "Please start WebLLM on http://localhost:3000 first",
-            "suggestion": "Run: python -m src.webllm_installer"
-        }
+        # Ensure model is installed before attempting generation
+        try:
+            await self.model_manager.ensure_model_installed(self.config.model_name)
+            
+            # In a real implementation, this would communicate with WebLLM
+            # For now, we provide a mock response and instructions
+            return {
+                "error": "WebLLM runtime not running",
+                "message": f"Please start WebLLM on {self.webllm_url} first",
+                "model_configured": self.config.model_name,
+                "suggestion": "WebLLM runtime is required for AI generation"
+            }
+        except Exception as e:
+            return {
+                "error": "Generation failed",
+                "message": str(e),
+                "model_configured": self.config.model_name
+            }
     
     async def stream_generate(
         self,
@@ -125,7 +151,8 @@ async def handle_api_health(request: web.Request) -> web.Response:
         return web.json_response({
             "status": "ok",
             "webllm_available": False,
-            "message": "WebLLM proxy ready - WebLLM runtime needs to be started"
+            "model_configured": proxy.config.model_name,
+            "message": f"WebLLM proxy ready - WebLLM runtime needs to be started at {proxy.webllm_url}"
         })
     except Exception as e:
         return web.json_response(
@@ -153,47 +180,70 @@ async def handle_index(request: web.Request) -> web.Response:
     <!DOCTYPE html>
     <html>
     <head>
+        <meta charset="UTF-8">
         <title>JSAIBOT - WebLLM Server</title>
         <style>
-            body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
-            .status-ok { color: green; }
-            .status-warn { color: orange; }
-            .status-err { color: red; }
+            body { font-family: Arial, sans-serif; max-width: 900px; margin: 40px auto; padding: 20px; }
+            h1 { color: #2c3e50; }
+            .status-ok { color: green; font-weight: bold; }
+            .status-warn { color: orange; font-weight: bold; }
+            .status-err { color: red; font-weight: bold; }
+            code { background-color: #f4f4f4; padding: 2px 6px; border-radius: 3px; }
+            ul { line-height: 1.8; }
         </style>
     </head>
     <body>
         <h1>JSAIBOT - WebLLM Server</h1>
-        <p><span class="status-ok">Server Status:</span> Running</p>
-        <p><span class="status-warn">WebLLM Runtime:</span> Not installed</p>
+        <p>A local AI chat system using WebLLM</p>
         
-        <h2>Setup Instructions</h2>
+        <div style="padding: 15px; background-color: #f9f9f9; border-radius: 8px; margin-top: 20px;">
+            <p><span class="status-ok">Server Status:</span> Running on http://localhost:{port}</p>
+            <p><span class="status-warn">WebLLM Runtime:</span> Not running</p>
+            <p><span class="status-warn">Model Status:</span> Auto-download enabled (Llama-3-8B-Instruct)</p>
+        </div>
+        
+        <h2>Quick Start</h2>
         <ol>
-            <li>Install required dependencies: <code>pip install -r requirements.txt</code></li>
-            <li>Download WebLLM runtime files to <code>./webllm/</code> directory</li>
-            <li>Start the WebLLM server: <code>python -m src.server --host 0.0.0.0 --port 8080</code></li>
+            <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
+            <li>Start the server: <code>python src/server.py --host 0.0.0.0 --port 8080</code></li>
+            <li>Open your browser to <a href="http://localhost:8080">http://localhost:8080</a></li>
+            <li>For full AI capabilities, download WebLLM from <a href="https://github.com/mlc-ai/web-llm" target="_blank">mlc-ai/web-llm</a></li>
         </ol>
         
         <h2>API Endpoints</h2>
         <ul>
-            <li><code>POST /api/generate</code> - Generate response (JSON body with 'message' field)</li>
-            <li><code>GET /health</code> - Health check</li>
+            <li><code>GET /health</code> - Server health status</li>
+            <li><code>POST /api/generate</code> - Send message for AI response</li>
         </ul>
         
-        <h2>WebLLM Setup Guide</h2>
-        <p>The WebLLM runtime needs to be downloaded and set up for offline operation:</p>
-        <ol>
-            <li>Visit: https://github.com/mlc-ai/web-llm</li>
-            <li>Download the latest release or build from source</li>
-            <li>Copy the built files to <code>./webllm/</code></li>
-            <li>Place your model weights in <code>./models/</code></li>
-        </ol>
+        <h3>/api/generate Request:</h3>
+        <pre>{
+    "message": "Your question here",
+    "max_new_tokens": 256,
+    "temperature": 0.7
+}</pre>
+        
+        <h2>Configuration</h2>
+        <p>Create a <code>.env</code> file to customize settings:</p>
+        <pre>WEBLLM_HOST=localhost
+WEBLLM_PORT=3000
+MODEL_NAME=Llama-3-8B-Instruct
+AUTO_DOWNLOAD=true</pre>
     </body>
     </html>
-    """
+    """.format(port=request.app.get('config', {}).get('port', 8080))
+    
     return web.Response(text=html_content, content_type='text/html')
 
 
-def create_app(webllm_url: str = "http://localhost:3000") -> web.Application:
+async def handle_api_models(request: web.Request) -> web.Response:
+    """Handle GET /api/models to list installed models."""
+    proxy: WebLLMProxy = request.app['webllm_proxy']
+    models = proxy.model_manager.get_installed_models()
+    return web.json_response({"models": models, "default": proxy.config.model_name})
+
+
+def create_app(config: WebLLMConfig = None) -> web.Application:
     """Create and configure the aiohttp web application."""
     app = web.Application()
     
@@ -209,13 +259,18 @@ def create_app(webllm_url: str = "http://localhost:3000") -> web.Application:
     
     app.middlewares.append(cors_middleware)
     
-    # Add proxy instance to app context
-    app['webllm_proxy'] = WebLLMProxy(webllm_url)
+    # Add config and proxy to app context
+    app['config'] = config or default_config
+    app['webllm_proxy'] = WebLLMProxy(
+        webllm_url=f"http://{config.host}:{config.port}" if config else "http://localhost:3000",
+        config=config
+    )
     
     # Routes
     app.router.add_get('/', handle_index)
     app.router.add_get('/health', handle_api_health)
     app.router.add_post('/api/generate', handle_api_generate)
+    app.router.add_get('/api/models', handle_api_models)
     app.router.add_options('/api/generate', handle_api_generate)  # CORS preflight
     
     return app
@@ -234,7 +289,10 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
     
-    app = create_app(args.webllm_url)
+    # Create config with command-line options
+    config = WebLLMConfig(host=args.host, port=args.port)
+    
+    app = create_app(config)
     
     print(f"JSAIBOT WebLLM Server starting...")
     print(f"Host: {args.host}")
@@ -244,6 +302,7 @@ def main():
     print("To use this server:")
     print("1. Ensure WebLLM runtime is running on the configured URL")
     print("2. Access the web interface at http://localhost:{port}".format(port=args.port))
+    print(f"3. Default model: {config.model_name}")
     print()
     
     try:
