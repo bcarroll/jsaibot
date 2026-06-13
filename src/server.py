@@ -261,7 +261,7 @@ def create_app(config: WebLLMConfig = None) -> web.Application:
     # Add config and proxy to app context
     app['config'] = config or default_config
     app['webllm_proxy'] = WebLLMProxy(
-        webllm_url=f"http://{config.host}:{config.port}" if config else "http://localhost:3000",
+        webllm_url="http://localhost:3000",  # WebLLM runtime runs on port 3000 (not server port)
         config=config
     )
     
