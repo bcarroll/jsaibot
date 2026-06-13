@@ -1,44 +1,29 @@
 # JSAIBOT
 
-A communication/chat system that integrates a locally downloaded WebLLM model for AI-powered responses.
+A communication/chat system that uses a locally downloaded WebLLM model for AI-powered responses. All processes run locally with no internet required after initial setup.
 
 ## Overview
 
-JSAIBOT is designed to leverage locally hosted WebLLM models to provide AI-driven chat functionality within a communication system. This approach ensures data privacy and allows for offline operation while utilizing powerful language models.
+JSAIBOT provides:
+- **Local WebLLM Server** - Python-based HTTP server serving the WebLLM interface
+- **Web-Based Chat Interface** - HTML/CSS/JS chat UI running in any modern browser
+- **Python API Client** - Async client for programmatic access to the WebLLM
 
-**Note:** This project provides the Python client API for communicating with WebLLM, but does not include the WebLLM server itself.
-
-## Prerequisites
-
-Before using JSAIBOT, you need to have a WebLLM instance running:
-
-1. **Install WebLLM** from [mlc-ai/web-llm](https://github.com/mlc-ai/web-llm)
-2. **Run the WebLLM server:**
-   ```bash
-   # After cloning and setting up WebLLM
-   python -m web_llm --model <your-model-path> --host 0.0.0.0 --port 3000
-   ```
+All components run locally. Once set up, no internet connection is required.
 
 ## Features
 
-- Local WebLLM model integration via Python API
-- Async HTTP REST client communication
-- Streaming response support for real-time output
+- Local WebLLM server with aiohttp (port 8080)
+- HTML/CSS/JS chat interface with real-time conversation
+- Temperature and token length configuration
 - Conversation history management
-- Health check and model information endpoints
+- Python API client for integration with other systems
 
-## Project Structure
+## Prerequisites
 
-```
-JSAIBOT/
-├── src/
-│   ├── __init__.py          # Package initialization
-│   ├── webllm_client.py     # Main WebLLM client API
-│   └── config.py            # Configuration module
-├── example_chat.py          # Usage examples
-├── requirements.txt         # Python dependencies
-└── .env.example            # Environment configuration template
-```
+- **Python 3.10+** installed
+- WebLLM runtime files (optional - for enhanced AI capabilities)
+- Web browser for chat interface
 
 ## Installation
 
@@ -53,64 +38,79 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-1. **Start WebLLM server** (separate from this project) on port 3000:
+1. **Start the server:**
    ```bash
-   python -m web_llm --model <your-model> --port 3000
+   python start_server.py
    ```
-
-2. **Test the connection:**
-   ```python
-   import asyncio
-   from src.webllm_client import WebLLMClient
-
-   async def main():
-       client = WebLLMClient()
-       if await client.health_check():
-           response = await client.generate_response("Hello!")
-           print(response)
    
-   asyncio.run(main())
+2. **Open your browser** and go to:
+   ```
+   http://localhost:8080
    ```
 
-3. **Run examples:**
-   ```bash
-   python example_chat.py
-   ```
+3. **Configure WebLLM runtime** (optional):
+   - For full AI capabilities, ensure WebLLM is running on `http://localhost:3000`
+   - The chat interface will show connection status
 
-## Configuration
+## Project Structure
 
-Copy `.env.example` to `.env` and update with your WebLLM instance settings:
+```
+JSAIBOT/
+├── src/
+│   ├── __init__.py          # Package initialization
+│   ├── webllm_client.py     # Async Python client for WebLLM API
+│   └── server.py            # aiohttp Web server with chat interface
+├── webllm/                  # WebLLM runtime files (optional)
+│   └── index.html           # Chat interface
+├── start_server.py          # Easy startup script
+├── example_chat.py          # Client usage examples
+├── requirements.txt         # Python dependencies
+└── .env.example            # Environment configuration template
+```
 
+## Server Configuration
+
+The server listens on `http://localhost:8080` by default.
+
+**Command line options:**
+```bash
+python src/server.py --host 0.0.0.0 --port 8080 --webllm-url http://localhost:3000
+```
+
+**Environment variables (create `.env`):**
 ```
 WEBLLM_HOST=localhost
 WEBLLM_PORT=3000
-MODEL_PATH=/path/to/model
-MAX_NEW_TOKENS=256
-TEMPERATURE=0.7
-HISTORY_SIZE=10
 ```
 
-## API Reference
+## API Endpoints
 
-### WebLLMClient
+### POST /api/generate
+Generate a response from the AI.
 
-```python
-client = WebLLMClient(host="localhost", port=3000)
-
-# Generate response (non-streaming)
-response = await client.generate_response("Your message")
-
-# Stream responses token-by-token
-async for token in client.stream_response("Your message"):
-    print(token, end="", flush=True)
-
-# Check server health
-if await client.health_check():
-    print("WebLLM is running!")
-
-# Manage conversation history
-client.clear_history()
+**Request body:**
+```json
+{
+    "message": "Your message here",
+    "history": [],
+    "max_new_tokens": 256,
+    "temperature": 0.7
+}
 ```
+
+### GET /health
+Check server status.
+
+## Offline Operation
+
+This project is designed for offline operation:
+1. All web interface files are served locally
+2. No external CDNs or remote services required
+3. Once WebLLM models are downloaded, no internet needed
+
+**Note:** To use AI features, you need a running WebLLM instance. This can be:
+- A local WebLLM runtime
+- An alternative local LLM server with compatible API
 
 ## License
 
