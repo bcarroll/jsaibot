@@ -10,6 +10,7 @@ Usage:
     python start_server.py [--host HOST] [--port PORT]
 """
 
+import asyncio
 import subprocess
 import sys
 from pathlib import Path
@@ -61,7 +62,7 @@ def initialize_model():
     print()
     print("[2/4] Initializing AI model...")
     
-    try:
+    async def init_model_async():
         from src.model_manager import ModelManager
         from src.config import WebLLMConfig
         
@@ -73,18 +74,23 @@ def initialize_model():
             print(f"  [INFO] Default model '{default_model}' not found")
             print("  [INFO] Downloading model...")
             
-            result = manager.download_model(default_model)
+            result = await manager.download_model(default_model)
             
             if result.get('downloaded'):
                 print(f"  [OK] Model downloaded to {result['path']}")
             else:
                 error_msg = result.get('error', 'Unknown error')
                 print(f"  [WARN] Could not download model: {error_msg}")
-                print("  [INFO] Server will start but AI features may be limited")
+                return False
         else:
             print(f"  [OK] Model '{default_model}' is ready")
         
         return True
+    
+    try:
+        # Run async function synchronously
+        result = asyncio.run(init_model_async())
+        return result
         
     except ImportError as e:
         print(f"  [WARN] Could not check models: {e}")
