@@ -34,21 +34,23 @@ All components run locally. Once set up, no internet connection is required.
 git clone <your-repo-url>
 cd JSAIBOT
 
-# Install dependencies (pyttsx3 required for voice output)
-pip install -r requirements.txt
-
-# Models will be automatically downloaded to ./models/ when needed
-# The default model is Llama-3-8B-Instruct with auto-download enabled
+# Run once - everything else is automatic:
+python start_server.py
 ```
 
 ## Quick Start
 
-1. **Start the server:**
-   ```bash
-   python start_server.py
-   ```
-   
-2. **Open your browser** and go to:
+Simply run:
+```bash
+python start_server.py
+```
+
+The application will:
+- Install any missing dependencies automatically
+- Download the default AI model if needed
+- Start the server at http://localhost:8080
+
+Then **open your browser** and go to:
    ```
    http://localhost:8080
    ```
@@ -58,15 +60,15 @@ pip install -r requirements.txt
    - The browser converts speech to text automatically
    
 4. **Toggle voice responses:** Click the purple "Voice Off" button in the status bar
-   
-5. **Model auto-download:**
-   - The default model (Llama-3-8B-Instruct) will be automatically downloaded when needed
-   - Models are stored in the `./models/` directory
-   - Set `AUTO_DOWNLOAD=false` in `.env` to disable this behavior
 
-4. **Configure WebLLM runtime** (optional):
-   - For full AI capabilities, ensure WebLLM is running on `http://localhost:3000`
-   - The chat interface will show connection status
+The server automatically handles:
+- Installing missing Python packages
+- Downloading AI models when needed
+- Managing voice output via pyttsx3
+
+For full WebLLM capabilities (optional), ensure the WebLLM runtime is running at:
+http://localhost:3000
+The chat interface will show connection status.
 
 ## Project Structure
 
