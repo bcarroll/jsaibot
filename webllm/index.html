@@ -205,7 +205,7 @@
             <div class="status-indicator">
                 <div id="connection-dot" class="dot"></div>
                 <span id="connection-status">Connecting...</span>
-                <button id="voice-mic-btn" class="voice-btn" title="Speak your message (Web Speech API)" style="margin-right: 5px;">🎤 Speak</button>
+                <button id="voice-mic-btn" class="voice-btn" title="Speak your message (Web Speech API)" style="margin-right: 5px;">Mic</button>
                 <button id="voice-toggle-btn" class="voice-btn" title="Toggle voice responses (requires pyttsx3)" disabled>Voice Off</button>
             </div>
             <button id="clear-btn" class="clear-btn" title="Clear conversation history">Clear Chat</button>
@@ -423,14 +423,14 @@
             
             recognition.onend = () => {
                 isListening = false;
-                document.getElementById('voice-mic-btn').textContent = '🎤 Speak';
+                document.getElementById('voice-mic-btn').textContent = 'Mic';
                 document.getElementById('voice-mic-btn').style.backgroundColor = '';
             };
             
             recognition.onerror = (event) => {
                 console.error('Speech recognition error:', event.error);
                 isListening = false;
-                document.getElementById('voice-mic-btn').textContent = '🎤 Speak';
+                document.getElementById('voice-mic-btn').textContent = 'Mic';
                 document.getElementById('voice-mic-btn').style.backgroundColor = '';
                 
                 if (event.error === 'not-allowed') {
