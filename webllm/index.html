@@ -152,12 +152,20 @@
         .setting-item { display: flex; flex-direction: column; gap: 5px; min-width: 150px; }
         label { font-size: 0.8em; color: #6b7280; font-weight: 500; }
         
-        .clear-btn {
+        .clear-btn, .voice-btn {
             padding: 10px;
-            background-color: #ef4444;
             width: auto;
         }
+        .clear-btn { background-color: #ef4444; }
         .clear-btn:hover { background-color: #dc2626; }
+        .voice-btn { background-color: #8b5cf6; }
+        .voice-btn:hover { background-color: #7c3aed; }
+        .voice-btn.active { background-color: #ec4899; animation: pulse 1.5s infinite; }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
         
         /* Loading animation */
         .typing-indicator {
@@ -197,6 +205,7 @@
             <div class="status-indicator">
                 <div id="connection-dot" class="dot"></div>
                 <span id="connection-status">Connecting...</span>
+                <button id="voice-toggle-btn" class="voice-btn" title="Toggle voice responses (requires pyttsx3)" disabled>Voice Off</button>
             </div>
             <button id="clear-btn" class="clear-btn" title="Clear conversation history">Clear Chat</button>
         </div>
@@ -251,6 +260,10 @@
         // Settings
         let temperature = 0.7;
         let maxTokens = 256;
+        
+        // Voice settings
+        let voiceEnabled = false;
+        let ttsEngineAvailable = typeof window.speechSynthesis !== 'undefined';
         
         // Conversation history
         let conversationHistory = [];
@@ -322,6 +335,11 @@
                 conversationHistory.push({ role: 'user', content: message });
                 conversationHistory.push({ role: 'assistant', content: aiResponse });
                 
+                // Speak the response if voice is enabled
+                if (ttsEngineAvailable && voiceEnabled) {
+                    speakText(aiResponse);
+                }
+                
             } catch (error) {
                 showTyping(false);
                 console.error('Error:', error);
@@ -374,6 +392,54 @@
                 }
             } catch (error) {
                 connectionStatus.textContent = 'Not connected';
+            }
+        }
+        
+        // Voice toggle button
+        const voiceBtn = document.getElementById('voice-toggle-btn');
+        
+        if (ttsEngineAvailable) {
+            voiceBtn.disabled = false;
+            voiceBtn.title = 'Toggle voice responses';
+            
+            voiceBtn.addEventListener('click', () => {
+                voiceEnabled = !voiceEnabled;
+                if (voiceEnabled) {
+                    voiceBtn.classList.add('active');
+                    voiceBtn.textContent = 'Voice On';
+                    // Test speech
+                    speakText("Voice responses enabled.");
+                } else {
+                    voiceBtn.classList.remove('active');
+                    voiceBtn.textContent = 'Voice Off';
+                }
+            });
+        } else {
+            voiceBtn.disabled = true;
+            voiceBtn.title = 'Voice not supported in this browser';
+        }
+        
+        // Text-to-speech function
+        function speakText(text) {
+            if (!ttsEngineAvailable || !voiceEnabled) return false;
+            
+            try {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.rate = 1.0;
+                utterance.pitch = 1.0;
+                
+                // Try to find a good English voice
+                const voices = window.speechSynthesis.getVoices();
+                const englishVoice = voices.find(v => v.lang.startsWith('en'));
+                if (englishVoice) {
+                    utterance.voice = englishVoice;
+                }
+                
+                window.speechSynthesis.speak(utterance);
+                return true;
+            } catch (error) {
+                console.error('TTS error:', error);
+                return false;
             }
         }
         

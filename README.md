@@ -15,6 +15,7 @@ All components run locally. Once set up, no internet connection is required.
 
 - Local WebLLM server with aiohttp (port 8080)
 - HTML/CSS/JS chat interface with real-time conversation
+- Text-to-Speech option for voice responses
 - Temperature and token length configuration
 - Conversation history management
 - Python API client for integration with other systems
@@ -23,7 +24,8 @@ All components run locally. Once set up, no internet connection is required.
 
 - **Python 3.10+** installed
 - WebLLM runtime files (optional - for enhanced AI capabilities)
-- Web browser for chat interface
+- Web browser with speech synthesis support for voice responses
+- Text-to-speech: Install `pyttsx3` for desktop voice output (`pip install pyttsx3`)
 
 ## Installation
 
@@ -41,17 +43,24 @@ pip install -r requirements.txt
 
 ## Quick Start
 
-1. **Start the server:**
+1. **Install TTS support (optional):**
+   ```bash
+   pip install pyttsx3
+   ```
+   
+2. **Start the server:**
    ```bash
    python start_server.py
    ```
    
-2. **Open your browser** and go to:
+3. **Open your browser** and go to:
    ```
    http://localhost:8080
    ```
 
-3. **Model auto-download:**
+4. **Toggle voice responses:** Click the purple "Voice Off" button in the status bar
+   
+5. **Model auto-download:**
    - The default model (Llama-3-8B-Instruct) will be automatically downloaded when needed
    - Models are stored in the `./models/` directory
    - Set `AUTO_DOWNLOAD=false` in `.env` to disable this behavior
@@ -90,6 +99,11 @@ python src/server.py --host 0.0.0.0 --port 8080 --webllm-url http://localhost:30
 # WebLLM Server Settings
 WEBLLM_HOST=localhost
 WEBLLM_PORT=3000
+
+# Text-to-Speech Settings (optional)
+TTS_ENABLED=true
+TTS_RATE=150
+TTS_VOLUME=1.0
 
 # Model Settings
 MODEL_NAME=Llama-3-8B-Instruct
