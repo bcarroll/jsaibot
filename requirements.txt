@@ -1,0 +1,6 @@
+# JSAIBOT Dependencies
+# Core HTTP/WebSocket client
+aiohttp>=3.9.0
+
+# Optional: For enhanced WebSocket support
+websockets>=12.0
