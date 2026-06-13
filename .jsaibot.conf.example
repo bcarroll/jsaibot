@@ -1,0 +1,6 @@
+[settings]
+# Auto-open web UI in default browser on startup (true/false)
+auto_start_browser = true
+
+# Auto-install missing Python dependencies (true/false)
+auto_install_deps = true

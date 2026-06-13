@@ -46,25 +46,32 @@ python start_server.py
 ```
 
 The application will:
-- Install any missing dependencies automatically
-- Download the default AI model if needed
+- Install any missing dependencies automatically (configurable)
+- Download the default AI model if needed (configurable)
+- Auto-open web UI in your default browser (configurable)
 - Start the server at http://localhost:8080
 
-Then **open your browser** and go to:
-   ```
-   http://localhost:8080
-   ```
+**Note:** The browser should auto-open to http://localhost:8080. If not, visit it manually.
 
-3. **Speak to the AI:** Click the 🎤 microphone button to use speech-to-text
+1. **Speak to the AI:** Click the 🎤 microphone button to use speech-to-text
    - Speak your message naturally
    - The browser converts speech to text automatically
    
-4. **Toggle voice responses:** Click the purple "Voice Off" button in the status bar
+2. **Toggle voice responses:** Click the purple "Voice Off" button in the status bar
 
-The server automatically handles:
-- Installing missing Python packages
-- Downloading AI models when needed
-- Managing voice output via pyttsx3
+### Configuration
+
+Create `~/.jsaibot.conf` to customize behavior:
+
+```ini
+[settings]
+auto_start_browser = true    # Auto-open browser on startup
+auto_install_deps = true     # Auto-install missing dependencies
+```
+
+Or use command line flags:
+- `--no-browser` - Disable auto-opening browser
+- `--no-auto-install` - Disable auto-installing dependencies
 
 For full WebLLM capabilities (optional), ensure the WebLLM runtime is running at:
 http://localhost:3000
@@ -80,10 +87,10 @@ JSAIBOT/
 │   └── server.py            # aiohttp Web server with chat interface
 ├── webllm/                  # WebLLM runtime files (optional)
 │   └── index.html           # Chat interface
-├── start_server.py          # Easy startup script
+├── start_server.py          # Easy startup script (with browser auto-open)
 ├── example_chat.py          # Client usage examples
 ├── requirements.txt         # Python dependencies
-└── .env.example            # Environment configuration template
+└── .jsaibot.conf.example   # Configuration file template
 ```
 
 ## Server Configuration
