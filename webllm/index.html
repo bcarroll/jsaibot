@@ -205,6 +205,7 @@
             <div class="status-indicator">
                 <div id="connection-dot" class="dot"></div>
                 <span id="connection-status">Connecting...</span>
+                <button id="voice-mic-btn" class="voice-btn" title="Speak your message (Web Speech API)" style="margin-right: 5px;">🎤 Speak</button>
                 <button id="voice-toggle-btn" class="voice-btn" title="Toggle voice responses (requires pyttsx3)" disabled>Voice Off</button>
             </div>
             <button id="clear-btn" class="clear-btn" title="Clear conversation history">Clear Chat</button>
@@ -294,6 +295,9 @@
             this.style.height = Math.min(this.scrollHeight, 150) + 'px';
         });
         
+        // Voice mic button listener
+        document.getElementById('voice-mic-btn').addEventListener('click', toggleListening);
+        
         // Send message function
         async function sendMessage(message) {
             if (!message.trim()) return;
@@ -336,7 +340,7 @@
                 conversationHistory.push({ role: 'assistant', content: aiResponse });
                 
                 // Speak the response if voice is enabled
-                if (ttsEngineAvailable && voiceEnabled) {
+                if (window.speechSynthesis && voiceEnabled) {
                     speakText(aiResponse);
                 }
                 
@@ -395,6 +399,73 @@
             }
         }
         
+        // Speech recognition setup (Web Speech API)
+        const speechRecognitionAvailable = typeof window.SpeechRecognition !== 'undefined' || 
+                                           typeof window.webkitSpeechRecognition !== 'undefined';
+        let recognition = null;
+        let isListening = false;
+        
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) return null;
+            
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+            
+            recognition.onstart = () => {
+                isListening = true;
+                document.getElementById('voice-mic-btn').textContent = 'Stop Listening';
+                document.getElementById('voice-mic-btn').style.backgroundColor = '#ef4444';
+            };
+            
+            recognition.onend = () => {
+                isListening = false;
+                document.getElementById('voice-mic-btn').textContent = '🎤 Speak';
+                document.getElementById('voice-mic-btn').style.backgroundColor = '';
+            };
+            
+            recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                isListening = false;
+                document.getElementById('voice-mic-btn').textContent = '🎤 Speak';
+                document.getElementById('voice-mic-btn').style.backgroundColor = '';
+                
+                if (event.error === 'not-allowed') {
+                    addMessageToChat('system', 'Microphone access denied. Please allow microphone access.');
+                } else if (event.error === 'no-speech') {
+                    // Silence detected - silently reset
+                }
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                // Auto-send after voice input
+                sendMessage(transcript);
+            };
+            
+            return recognition;
+        }
+        
+        function toggleListening() {
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+                if (!recognition) {
+                    addMessageToChat('system', 'Speech recognition not supported in this browser.');
+                    return;
+                }
+            }
+            
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        }
+        
         // Voice toggle button
         const voiceBtn = document.getElementById('voice-toggle-btn');
         
@@ -419,9 +490,12 @@
             voiceBtn.title = 'Voice not supported in this browser';
         }
         
+        // Initialize speech recognition on load
+        initSpeechRecognition();
+        
         // Text-to-speech function
         function speakText(text) {
-            if (!ttsEngineAvailable || !voiceEnabled) return false;
+            if (!window.speechSynthesis || !voiceEnabled) return false;
             
             try {
                 const utterance = new SpeechSynthesisUtterance(text);

@@ -15,6 +15,7 @@ All components run locally. Once set up, no internet connection is required.
 
 - Local WebLLM server with aiohttp (port 8080)
 - HTML/CSS/JS chat interface with real-time conversation
+- Speech-to-Text via Web Speech API (browser-based voice input)
 - Text-to-Speech option for voice responses (pyttsx3 required)
 - Temperature and token length configuration
 - Conversation history management
@@ -24,7 +25,7 @@ All components run locally. Once set up, no internet connection is required.
 
 - **Python 3.10+** installed
 - WebLLM runtime files (optional - for enhanced AI capabilities)
-- Web browser with speech synthesis support for voice responses
+- Modern web browser with microphone access and speech recognition support
 
 ## Installation
 
@@ -47,11 +48,15 @@ pip install -r requirements.txt
    python start_server.py
    ```
    
-3. **Open your browser** and go to:
+2. **Open your browser** and go to:
    ```
    http://localhost:8080
    ```
 
+3. **Speak to the AI:** Click the 🎤 microphone button to use speech-to-text
+   - Speak your message naturally
+   - The browser converts speech to text automatically
+   
 4. **Toggle voice responses:** Click the purple "Voice Off" button in the status bar
    
 5. **Model auto-download:**

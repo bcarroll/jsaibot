@@ -4,3 +4,5 @@ aiohttp>=3.9.0
 
 # Text-to-Speech (required for consistent voice output across all devices)
 pyttsx3>=2.90
+
+# Note: Speech-to-Text is handled via Web Speech API in the browser
