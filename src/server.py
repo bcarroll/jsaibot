@@ -84,16 +84,15 @@ class WebLLMProxy:
             # In a real implementation, this would communicate with WebLLM
             # For now, we provide a mock response and instructions
             return {
-                "error": "WebLLM runtime not running",
-                "message": f"Please start WebLLM on {self.webllm_url} first",
+                "response": f"[AI Response Mode]\n\nThis JSAIBOT instance is running but the WebLLM runtime (required for AI generation) is not connected.\n\nTo use full AI features:\n1. Install WebLLM from https://github.com/mlc-ai/web-llm\n2. Start WebLLM on {self.webllm_url}\n3. Return here to chat with the AI!\n\nFor now, this serves as a demo of the JSAIBOT interface.",
                 "model_configured": self.config.model_name,
-                "suggestion": "WebLLM runtime is required for AI generation"
+                "webllm_required": True
             }
         except Exception as e:
             return {
-                "error": "Generation failed",
-                "message": str(e),
-                "model_configured": self.config.model_name
+                "response": f"[AI Response Mode]\n\nError: {str(e)}\n\nThis instance is running but WebLLM runtime is not connected.",
+                "model_configured": self.config.model_name,
+                "webllm_required": True
             }
     
     async def stream_generate(
