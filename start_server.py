@@ -528,8 +528,14 @@ Command line flags override configuration settings.
     if auto_start_browser:
         open_browser(args.host, args.port)
     
-    # Play initialization sound and greet user
+    # Play initialization sound
     play_init_sound()
+    
+    # Test voice capabilities if enabled
+    if auto_tts_enabled:
+        test_voice_capabilities()
+    
+    # Greet user with random fact
     greet_user(webllm_port, auto_tts_enabled, auto_stt_enabled, args.host, args.port)
     
     # Keep running until interrupted
@@ -546,22 +552,50 @@ Command line flags override configuration settings.
         print("All servers stopped.")
 
 
-def greet_user(webllm_port, auto_tts_enabled, auto_stt_enabled, host, port):
-    """Greet the user with a random made-up fact when system is ready."""
+def test_voice_capabilities():
+    """Test TTS and STT capabilities with an interactive prompt."""
     print()
-    print("=" * 50)
-    print("✨ JSAIBOT is Ready! ✨")
-    print("=" * 50)
-    print(f"  {get_random_fact()}")
-    print()
-    print("System Status:")
-    print(f"  • WebLLM Runtime: http://localhost:{webllm_port}")
-    print(f"  • Text-to-Speech: {'Enabled' if auto_tts_enabled else 'Disabled'}")
-    print(f"  • Speech-to-Text: {'Enabled' if auto_stt_enabled else 'Disabled'}")
-    print(f"  • Main Server: {host}:{port}")
-    print(f"  • Web interface: http://{host}:{port}")
-    print()
-    print("Press Ctrl+C to stop all servers")
+    print("[TESTING] Testing voice capabilities...")
+    
+    try:
+        from src.tts import TextToSpeech
+        import time
+        
+        # Initialize TTS engine
+        tts = TextToSpeech(rate=160, volume=0.9)
+        
+        # Ask the user a question
+        question = "Hello! I am JSAIBOT. How can I help you today?"
+        print(f"  Speaking: {question}")
+        tts.speak(question)
+        
+        time.sleep(2)  # Give time for TTS to complete
+        
+        # Simulate STT response (since we're in CLI, ask user for input)
+        print()
+        response = input("  [STT Input] (press Enter after speaking): ").strip()
+        
+        if not response:
+            response = "Hello JSAIBOT"
+        
+        print(f"  [STT Detected]: {response}")
+        
+        # Respond with what's happening next
+        next_steps = "I will now start the main server and open the web interface."
+        print(f"  Speaking: {next_steps}")
+        tts.speak(next_steps)
+        
+        time.sleep(1)
+        
+        return True
+        
+    except ImportError as e:
+        print(f"  [WARN] Could not test voice capabilities: {e}")
+        print("  Make sure pyttsx3 is installed for TTS testing")
+        return False
+    except Exception as e:
+        print(f"  [ERROR] Voice test failed: {e}")
+        return False
 
 
 if __name__ == "__main__":
