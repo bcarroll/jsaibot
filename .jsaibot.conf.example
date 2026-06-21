@@ -4,3 +4,12 @@ auto_start_browser = true
 
 # Auto-install missing Python dependencies (true/false)
 auto_install_deps = true
+
+# Port for WebLLM runtime (default: 3000)
+webllm_port = 3000
+
+# Auto-start text-to-speech voice responses (true/false) - Default: true
+auto_tts_enabled = true
+
+# Auto-start speech-to-text via browser microphone (true/false) - Default: true
+auto_stt_enabled = true

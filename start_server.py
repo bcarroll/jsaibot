@@ -14,6 +14,9 @@ Configuration file (~/.jsaibot.conf):
 [settings]
 auto_start_browser = true
 auto_install_deps = true
+webllm_port = 3000
+auto_tts_enabled = true
+auto_stt_enabled = true
 """
 
 import argparse
@@ -34,7 +37,9 @@ def load_config():
     defaults = {
         'auto_start_browser': True,
         'auto_install_deps': True,
-        'webllm_port': 3000
+        'webllm_port': 3000,
+        'auto_tts_enabled': True,
+        'auto_stt_enabled': True
     }
     
     if not config_path.exists():
@@ -54,6 +59,10 @@ def load_config():
                     defaults['webllm_port'] = int(config['settings']['webllm_port'])
                 except ValueError:
                     pass
+            if 'auto_tts_enabled' in config['settings']:
+                defaults['auto_tts_enabled'] = config['settings']['auto_tts_enabled'].lower() == 'true'
+            if 'auto_stt_enabled' in config['settings']:
+                defaults['auto_stt_enabled'] = config['settings']['auto_stt_enabled'].lower() == 'true'
     except Exception as e:
         print(f"  [WARN] Could not read config file: {e}")
     
@@ -379,6 +388,8 @@ Command line flags override configuration settings.
     parser.add_argument('--webllm-port', type=int, default=None, help='Port for WebLLM runtime (default: 3000)')
     parser.add_argument('--no-browser', action='store_true', help='Disable auto-opening browser')
     parser.add_argument('--no-auto-install', action='store_true', help='Disable auto-installing dependencies')
+    parser.add_argument('--no-tts', action='store_true', help='Disable auto-starting text-to-speech')
+    parser.add_argument('--no-stt', action='store_true', help='Disable auto-starting speech-to-text')
     
     args = parser.parse_args()
     
@@ -389,6 +400,8 @@ Command line flags override configuration settings.
     auto_start_browser = not args.no_browser and config.get('auto_start_browser', True)
     auto_install_deps = not args.no_auto_install and config.get('auto_install_deps', True)
     webllm_port = args.webllm_port or config.get('webllm_port', 3000)
+    auto_tts_enabled = not args.no_tts and config.get('auto_tts_enabled', True)
+    auto_stt_enabled = not args.no_stt and config.get('auto_stt_enabled', True)
     
     print("=" * 50)
     print("JSAIBOT - Local WebLLM Chat System")
@@ -446,12 +459,26 @@ Command line flags override configuration settings.
         print(f"[ERROR] Failed to start main server: {e}")
         sys.exit(1)
     
+    # Step 7: Start TTS/STT voice services if enabled
+    print()
+    print("[7/8] Starting voice services...")
+    
+    tts_process = None
+    stt_process = None
+    
+    if auto_tts_enabled or auto_stt_enabled:
+        print("  [OK] Voice services will be started via browser interface")
+        # Note: TTS is handled by pyttsx3 in Python, STT by Web Speech API in JS
+        # These are started when the web UI loads
+    else:
+        print("  [SKIP] Voice services disabled by configuration")
+    
     # Wait a moment for servers to fully start
     time.sleep(2)
     
-    # Step 7: Open browser if enabled
+    # Step 8: Open browser if enabled
     print()
-    print("[7/7] Opening browser...")
+    print("[8/8] Opening browser...")
     
     if auto_start_browser:
         open_browser(args.host, args.port)
@@ -461,6 +488,8 @@ Command line flags override configuration settings.
     print("JSAIBOT Running!")
     print("=" * 50)
     print(f"  WebLLM Runtime: http://localhost:{webllm_port}")
+    print(f"  Text-to-Speech: {'Enabled' if auto_tts_enabled else 'Disabled'}")
+    print(f"  Speech-to-Text: {'Enabled' if auto_stt_enabled else 'Disabled'}")
     print(f"  Main Server: {args.host}:{args.port}")
     print(f"  Web interface: http://{args.host}:{args.port}")
     print()
