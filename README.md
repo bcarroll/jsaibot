@@ -65,13 +65,18 @@ Create `~/.jsaibot.conf` to customize behavior:
 
 ```ini
 [settings]
-auto_start_browser = true    # Auto-open browser on startup
-auto_install_deps = true     # Auto-install missing dependencies
+auto_start_browser = true      # Auto-open browser on startup
+auto_install_deps = true       # Auto-install missing dependencies
+webllm_port = 3000             # WebLLM runtime port (default: 3000)
+auto_tts_enabled = true        # Enable text-to-speech voice responses
+auto_stt_enabled = true        # Enable speech-to-text via microphone
 ```
 
 Or use command line flags:
 - `--no-browser` - Disable auto-opening browser
 - `--no-auto-install` - Disable auto-installing dependencies
+- `--no-tts` - Disable text-to-speech voice responses
+- `--no-stt` - Disable speech-to-text via microphone
 
 For full WebLLM capabilities (optional), ensure the WebLLM runtime is running at:
 http://localhost:3000
