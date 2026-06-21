@@ -24,11 +24,56 @@ import asyncio
 import configparser
 import json
 import os
+import random
 import subprocess
 import sys
 import time
 import webbrowser
 from pathlib import Path
+
+# Random made-up facts for the greeting
+RANDOM_FACTS = [
+    "Did you know? The average person walks the equivalent of 5 times around the world in their lifetime.",
+    "Fun fact: Bananas are curved because they grow towards the sun - a phenomenon called negative geotropism.",
+    "Interesting: A group of flamingos is called a 'flamboyance'.",
+    "Trivia: Honey never spoils - edible honey has been found in ancient Egyptian tombs!",
+    "Did you know? Octopuses have three hearts and blue blood.",
+    "Fun fact: The shortest war in history lasted 38 minutes between Britain and Zanzibar in 1896.",
+    "Interesting: Humans share about 50% of their DNA with bananas.",
+    "Trivia: A day on Venus is longer than a year on Venus.",
+    "Did you know? Sharks are older than trees in evolutionary history.",
+    "Fun fact: The Eiffel Tower can be 15 cm taller during the summer due to thermal expansion.",
+]
+
+
+def play_init_sound():
+    """Play an initialization sound to indicate system is starting."""
+    try:
+        if sys.platform == 'win32':
+            # Use winsound on Windows - simple beep pattern
+            import winsound
+            # Play a pleasant two-tone startup sound
+            winsound.Beep(523, 150)   # C5 (523Hz)
+            time.sleep(0.1)
+            winsound.Beep(659, 150)   # E5 (659Hz)
+            time.sleep(0.1)
+            winsound.Beep(784, 200)   # G5 (784Hz)
+        elif sys.platform == 'darwin':
+            # Use AppleScript on macOS
+            os.system('osascript -e "beep"')
+            time.sleep(0.2)
+            os.system('osascript -e "beep"')
+        else:
+            # Use simple beep character for Linux/Unix
+            print('\a', end='', flush=True)
+            time.sleep(0.3)
+    except Exception as e:
+        print(f"  [WARN] Could not play initialization sound: {e}")
+
+
+def get_random_fact():
+    """Get a random made-up fact for the greeting."""
+    return random.choice(RANDOM_FACTS)
 
 
 def load_config():
@@ -483,17 +528,9 @@ Command line flags override configuration settings.
     if auto_start_browser:
         open_browser(args.host, args.port)
     
-    print()
-    print("=" * 50)
-    print("JSAIBOT Running!")
-    print("=" * 50)
-    print(f"  WebLLM Runtime: http://localhost:{webllm_port}")
-    print(f"  Text-to-Speech: {'Enabled' if auto_tts_enabled else 'Disabled'}")
-    print(f"  Speech-to-Text: {'Enabled' if auto_stt_enabled else 'Disabled'}")
-    print(f"  Main Server: {args.host}:{args.port}")
-    print(f"  Web interface: http://{args.host}:{args.port}")
-    print()
-    print("Press Ctrl+C to stop all servers")
+    # Play initialization sound and greet user
+    play_init_sound()
+    greet_user(webllm_port, auto_tts_enabled, auto_stt_enabled, args.host, args.port)
     
     # Keep running until interrupted
     try:
@@ -507,6 +544,24 @@ Command line flags override configuration settings.
             main_process.wait()
         
         print("All servers stopped.")
+
+
+def greet_user(webllm_port, auto_tts_enabled, auto_stt_enabled, host, port):
+    """Greet the user with a random made-up fact when system is ready."""
+    print()
+    print("=" * 50)
+    print("✨ JSAIBOT is Ready! ✨")
+    print("=" * 50)
+    print(f"  {get_random_fact()}")
+    print()
+    print("System Status:")
+    print(f"  • WebLLM Runtime: http://localhost:{webllm_port}")
+    print(f"  • Text-to-Speech: {'Enabled' if auto_tts_enabled else 'Disabled'}")
+    print(f"  • Speech-to-Text: {'Enabled' if auto_stt_enabled else 'Disabled'}")
+    print(f"  • Main Server: {host}:{port}")
+    print(f"  • Web interface: http://{host}:{port}")
+    print()
+    print("Press Ctrl+C to stop all servers")
 
 
 if __name__ == "__main__":
